@@ -1,0 +1,308 @@
+﻿<meta charset="utf-8">
+<script src="./js/jquery.min.js"></script>
+<!--
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true"></script>
+-->
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCdylDtlgLHti6lclEtPb09TkBBqav3CCU"></script>
+<script type="text/javascript" src="./js/gmaps.js"></script>
+<script type="text/javascript" src="./js/papaparse.min.js"></script>
+<link rel="stylesheet" type="text/css" href="./js/gmaps.css" />
+
+<style type="text/css">
+table, td {
+    border-color: #000;
+    border-style: solid;
+}
+table {
+    border-width: 0 0 1px 1px;
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+td {
+    margin: 0;
+    padding: 4px;
+    border-width: 1px 1px 0 0;
+    background-color: #FFF;
+}</style>
+
+<script type="text/javascript">
+var map;
+var html_data;
+
+$(document).ready(function() {
+	// Создать объект карты:
+	map = new GMaps({
+			el: '#map',
+			lat: 55.751667,
+			lng: 37.617778,
+			zoom: 10,
+		});
+	// Скрыть:
+	//$("#map").hide();
+});
+
+var FileData = "";
+
+function readSingleFile(evt) {
+	var f = evt.target.files[0];
+	if (f) {
+		var r = new FileReader();
+		r.onload = function(e) {
+			FileData = e.target.result;
+			
+			var trip = [];
+			var cnt = 0;
+			var dist = 0;
+			var fuel = 0;
+			var speed = 0;
+			var p_fuel = 0;
+			var p_air = 0;
+			var rpm = 0;
+			var t_eng = -100;
+			var t_trans = -100;
+			var t_ext_min = 200;
+			var t_ext_max = -100;
+			var batt_min = 20.0;
+			var batt_max = 0;
+			var time_start = "";
+			var time_stop = "";
+			var date_start = "";
+			var date_stop = "";
+			
+			// Позиции параметров по столбцам:
+			var csv_pos_lon = 0;
+			var csv_pos_lat = 0;
+			var csv_pos_dist = 0;
+			var csv_pos_fuel = 0;
+			var csv_pos_speed = 0;
+			var csv_pos_rpm = 0;
+			var csv_pos_t_eng = 0;
+			var csv_pos_t_trans = 0;
+			var csv_pos_t_ext = 0;
+			var csv_pos_batt = 0;
+			var csv_pos_date = 0;
+			var csv_pos_time = 0;
+			var csv_pos_p_fuel = 0;
+			var csv_pos_p_air = 0;
+			
+			var vin = "";
+			
+			var csv_str_len = 0;
+			
+			var csv = Papa.parse(FileData, {
+				delimiter: ";",
+				newline: "",
+				header: false,
+				step: function workRow(results) {
+					if (results.data[0][0] == "VIN") {
+						vin = results.data[0][1];
+					} else
+					if (results.data[0][0] == "WAYPOINT") {
+						//...
+					} else
+					if (results.data[0][0] == "ERROR") {
+						//...
+					} else
+					if (cnt == 0) {
+						csv_str_len = results.data[0].length;
+						for (var i=0; i<results.data[0].length; i++) {
+							if (results.data[0][i] == "lat") {
+								csv_pos_lat = i;
+							} else
+							if (results.data[0][i] == "lon") {
+								csv_pos_lon = i;
+							} else
+							if (results.data[0][i] == "dist") {
+								csv_pos_dist = i;
+							} else
+							if (results.data[0][i] == "dfuel") {
+								csv_pos_fuel = i;
+							} else
+							if (results.data[0][i] == "speed") {
+								csv_pos_speed = i;
+							} else
+							if (results.data[0][i] == "rpm") {
+								csv_pos_rpm = i;
+							} else
+							if (results.data[0][i] == "t_eng") {
+								csv_pos_t_eng = i;
+							} else
+							if (results.data[0][i] == "t_akpp") {
+								csv_pos_t_trans = i;
+							} else
+							if (results.data[0][i] == "t_ext") {
+								csv_pos_t_ext = i;
+							} else
+							if (results.data[0][i] == "batt") {
+								csv_pos_batt = i;
+							} else
+							if (results.data[0][i] == "fdate") {
+								csv_pos_date = i;
+							} else
+							if (results.data[0][i] == "ftime") {
+								csv_pos_time = i;
+							} else
+							if (results.data[0][i] == "p_fuel") {
+								csv_pos_p_fuel = i;
+							} else
+							if (results.data[0][i] == "p_air") {
+								csv_pos_p_air = i;
+							}
+						}
+						cnt++;
+					} else {
+						if (csv_str_len == results.data[0].length) {
+							// Сохраняем стартовое время:
+							if (date_start == "" &&
+								time_start == "") {
+								date_start = results.data[0][csv_pos_date];
+								time_start = results.data[0][csv_pos_time];
+							}
+							// Сохраняем конечное время:
+							if (results.data[0][csv_pos_date] && 
+								results.data[0][csv_pos_time]) {
+								date_stop = results.data[0][csv_pos_date];
+								time_stop = results.data[0][csv_pos_time];
+							}
+							if (csv_pos_lon && csv_pos_lat &&
+								parseFloat(results.data[0][csv_pos_lon]) != 0 && 
+								parseFloat(results.data[0][csv_pos_lat]) != 0 &&
+								results.data[0][csv_pos_lon] && results.data[0][csv_pos_lat]) {
+									trip.push( [results.data[0][csv_pos_lon], results.data[0][csv_pos_lat]] );
+							}
+							if (csv_pos_fuel &&
+								parseFloat(results.data[0][csv_pos_fuel]) != 0 &&
+								results.data[0][csv_pos_fuel]) {
+								fuel = parseFloat(results.data[0][csv_pos_fuel]);
+							}
+							if (csv_pos_dist &&
+								parseFloat(results.data[0][csv_pos_dist]) != 0 &&
+								results.data[0][csv_pos_dist]) {
+								dist = parseFloat(results.data[0][csv_pos_dist]);
+							}
+							if (csv_pos_speed &&
+								parseFloat(results.data[0][csv_pos_speed]) != 0 &&
+								results.data[0][csv_pos_speed]) {
+								if (speed < parseFloat(results.data[0][csv_pos_speed])) {
+									speed = parseFloat(results.data[0][csv_pos_speed]);
+								}
+							}
+							if (csv_pos_rpm &&
+								parseFloat(results.data[0][csv_pos_rpm]) != 0 &&
+								results.data[0][csv_pos_rpm]) {
+								if (rpm < parseFloat(results.data[0][csv_pos_rpm])) {
+									rpm = parseFloat(results.data[0][csv_pos_rpm]);
+								}
+							}
+							if (csv_pos_t_eng &&
+								parseFloat(results.data[0][csv_pos_t_eng]) != 0 &&
+								results.data[0][csv_pos_t_eng]) {
+								if (t_eng < parseFloat(results.data[0][csv_pos_t_eng])) {
+									t_eng = parseFloat(results.data[0][csv_pos_t_eng]);
+								}
+							}
+							if (csv_pos_t_trans &&
+								parseFloat(results.data[0][csv_pos_t_trans]) != 0 &&
+								results.data[0][csv_pos_t_trans]) {
+								if (t_trans < parseFloat(results.data[0][csv_pos_t_trans])) {
+									t_trans = parseFloat(results.data[0][csv_pos_t_trans]);
+								}
+							}
+							if (csv_pos_p_fuel &&
+								parseFloat(results.data[0][csv_pos_p_fuel]) != 0 &&
+								results.data[0][csv_pos_p_fuel]) {
+								if (p_fuel < parseFloat(results.data[0][csv_pos_p_fuel])) {
+									p_fuel = parseFloat(results.data[0][csv_pos_p_fuel]);
+								}
+							}
+							if (csv_pos_p_air &&
+								parseFloat(results.data[0][csv_pos_p_air]) != 0 &&
+								results.data[0][csv_pos_p_air]) {
+								if (p_air < parseFloat(results.data[0][csv_pos_p_air])) {
+									p_air = parseFloat(results.data[0][csv_pos_p_air]);
+								}
+							}
+							if (csv_pos_t_ext &&
+								parseFloat(results.data[0][csv_pos_t_ext]) != 0 &&
+								results.data[0][csv_pos_t_ext]) {
+								if (t_ext_max < parseFloat(results.data[0][csv_pos_t_ext])) {
+									t_ext_max = parseFloat(results.data[0][csv_pos_t_ext]);
+								}
+								if (t_ext_min > parseFloat(results.data[0][csv_pos_t_ext])) {
+									t_ext_min = parseFloat(results.data[0][csv_pos_t_ext]);
+								}
+							}
+							if (csv_pos_batt &&
+								parseFloat(results.data[0][csv_pos_batt]) != 0 &&
+								results.data[0][csv_pos_batt]) {
+								if (batt_max < parseFloat(results.data[0][csv_pos_batt])) {
+									batt_max = parseFloat(results.data[0][csv_pos_batt]);
+								}
+								if (batt_min > parseFloat(results.data[0][csv_pos_batt])) {
+									batt_min = parseFloat(results.data[0][csv_pos_batt]);
+								}
+							}
+							cnt++;
+						}
+					}
+				},
+			});
+			
+			var tbl = "";
+			tbl += "<table border=\"1\">";
+			tbl += "<tr><td>Пройденная дистанция:</td><td>"+(dist/1000).toFixed(1)+" км</td></tr>";
+			tbl += "<tr><td>Максимальная скорость:</td><td>"+speed+" км/ч</td></tr>";
+			tbl += "<tr><td>Средняя скорость:</td><td>"+((dist/1000)/(cnt/3600)).toFixed(1)+" км/ч</td></tr>";
+			tbl += "<tr><td>Максимальные обороты:</td><td>"+rpm+" об/мин</td></tr>";
+			if (p_fuel) {
+				tbl += "<tr><td>Макс. давление в рейке:</td><td>"+p_fuel+" МПа</td></tr>";
+			}
+			if (p_air) {
+				tbl += "<tr><td>Макс. давление во впуске:</td><td>"+p_air+" кПа</td></tr>";
+			}
+			tbl += "<tr><td>Максимальная t-двигателя:</td><td>"+t_eng+"°C</td></tr>";
+			tbl += "<tr><td>Максимальная t-коробки:</td><td>"+t_trans+"°C</td></tr>";
+			tbl += "<tr><td>Забортная температура:</td><td>"+t_ext_min+"-"+t_ext_max+"°C</td></tr>";
+			tbl += "<tr><td>Напряжение аккумулятора:</td><td>"+batt_min+"-"+batt_max+"В</td></tr>";
+			tbl += "<tr><td>Время в пути:</td><td>"+Math.floor(cnt/3600)+" час "+(Math.floor(cnt/60)%60)+" минут</td></tr>";
+			tbl += "<tr><td>Выезд:</td><td>"+time_start+" "+date_start+"</td></tr>";
+			tbl += "<tr><td>Приезд:</td><td>"+time_stop+" "+date_stop+"</td></tr>";
+			if (fuel) {
+				tbl += "<tr><td>Израсходованное топливо:</td><td>"+fuel+" л</td></tr>";
+			}
+			if (vin) {
+				tbl += "<tr><td>VIN автомобиля:</td><td>"+vin+"</td></tr>";
+			}
+			tbl += "</table><br>";
+			$("#data_info").html(tbl);
+			
+			//$("#map").show();
+			
+			if ($("#points_clr").prop('checked')) {
+				map.removePolylines();
+			}
+			
+			map.drawPolyline({
+				path: trip,
+				strokeColor: '#131540',
+				strokeOpacity: 0.6,
+				strokeWeight: 6
+			});
+			map.setCenter({
+				lat: parseFloat(trip[trip.length-1][0]),
+				lng: parseFloat(trip[trip.length-1][1]),
+			});
+		}
+		r.readAsText(f);
+	} else { 
+		alert("Ошибка загрузки файла!");
+    }
+}
+</script>
+
+<table><tr><td>Файл с данными:</td><td><input type="file" id="fileinput"></td><td><input type="checkbox" value="1" name="points_clr" id="points_clr" checked>Очистить карту</td></tr></table><br>
+<div id="data_info"></div>
+<div id="map"></div>
+<script type="text/javascript">
+document.getElementById('fileinput').addEventListener('change', readSingleFile, false);
+</script>

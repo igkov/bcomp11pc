@@ -1,0 +1,11 @@
+.out
+.out_rel
+*uvgui*
+*.bak
+*.dep
+*-bak
+pc/*.exe
+sw/default
+sw/default88
+hw/out
+hw-sens/out
