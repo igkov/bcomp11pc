@@ -76,6 +76,17 @@ bmp_struct_t bmp;
 
 #elif 1
 
+// krim
+
+#define SIZE_X 2048
+#define SIZE_Y 2048
+#define CENTER_X 34.091941f
+#define CENTER_Y 45.240079f
+#define RAD_X 1.0f
+#define RAD_Y 0.75f
+
+#elif 1
+
 // center
 
 #define SIZE_X 2048
