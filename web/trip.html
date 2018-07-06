@@ -41,6 +41,10 @@ $(document).ready(function() {
 	//$("#map").hide();
 });
 
+function gps_len(data1, data2) {
+	return (Math.pow(data1[1]-data2[1],2)+Math.pow(data1[2]-data2[2],2));
+}
+
 var FileData = "";
 
 function readSingleFile(evt) {
@@ -88,6 +92,11 @@ function readSingleFile(evt) {
 			var vin = "";
 			
 			var csv_str_len = 0;
+			
+			
+			if ($("#points_clr").prop('checked')) {
+				map.removePolylines();
+			}
 			
 			var csv = Papa.parse(FileData, {
 				delimiter: ";",
@@ -168,7 +177,20 @@ function readSingleFile(evt) {
 								parseFloat(results.data[0][csv_pos_lon]) != 0 && 
 								parseFloat(results.data[0][csv_pos_lat]) != 0 &&
 								results.data[0][csv_pos_lon] && results.data[0][csv_pos_lat]) {
-									trip.push( [results.data[0][csv_pos_lon], results.data[0][csv_pos_lat]] );
+								if (trip.length > 1) {
+									if ((Math.pow(trip[trip.length - 1][0] - results.data[0][csv_pos_lon],2) + 
+										 Math.pow(trip[trip.length - 1][1] - results.data[0][csv_pos_lat],2)) > 0.001) 
+									{
+										map.drawPolyline({
+											path: trip,
+											strokeColor: '#131540',
+											strokeOpacity: 0.6,
+											strokeWeight: 6
+										});
+										trip = [];
+									}
+								}
+								trip.push( [results.data[0][csv_pos_lon], results.data[0][csv_pos_lat]] );
 							}
 							if (csv_pos_fuel &&
 								parseFloat(results.data[0][csv_pos_fuel]) != 0 &&
@@ -277,10 +299,6 @@ function readSingleFile(evt) {
 			$("#data_info").html(tbl);
 			
 			//$("#map").show();
-			
-			if ($("#points_clr").prop('checked')) {
-				map.removePolylines();
-			}
 			
 			map.drawPolyline({
 				path: trip,

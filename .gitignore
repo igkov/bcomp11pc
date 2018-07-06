@@ -5,3 +5,4 @@
 *.dep
 *-bak
 win32/*.exe
+logs
