@@ -6,3 +6,4 @@
 *-bak
 win32/*.exe
 logs
+out*.bmp

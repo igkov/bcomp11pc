@@ -52,9 +52,32 @@ int at_110 = 0;
 
 bmp_struct_t bmp;
 
+typedef struct {
+	int id;
+	char alias[32];
+	int size_x;
+	int size_y;
+	double center_x;
+	double center_y;
+	double rad_x;
+	double rad_y;
+} place_t;
+
+int id = 4;
+
+place_t places[] = {
+	{ 1, "Sochi",   4096, 4096, 39.487844f, 43.777452f, 0.9f, 0.6f, },
+	{ 2, "M4 Krim", 2048, 8192, 37.619020f, 55.753960f, 5.0f, 20.0f },
+	{ 3, "Krim",    2048, 2048, 34.091941f, 45.240079f, 1.0f, 0.75f },
+	{ 4, "Center",  2048, 2048, 37.619020f, 55.753960f, 4.0f, 3.0f  },
+	{ 5, "NN",      2048, 2048, 43.994927f, 56.328581f, 0.15f, 0.1f },
+	{ 6, "Maslovo", 2048, 2048, 37.701503f, 57.278049f, (0.075f/2), (0.05f/2) },
+	{ 7, "Moscow",  2048, 2048, 37.619020f, 55.753960f, 0.3f, 0.2f },
+};
+
 #if 0
 
-// sochi
+// 1. sochi
 
 #define SIZE_X 4096
 #define SIZE_Y 4096
@@ -65,7 +88,7 @@ bmp_struct_t bmp;
 
 #elif 0
 
-// m4-krim
+// 2. m4-krim
 
 #define SIZE_X 2048
 #define SIZE_Y 8192
@@ -74,9 +97,9 @@ bmp_struct_t bmp;
 #define RAD_X 5.0f
 #define RAD_Y 20.0f
 
-#elif 1
+#elif 0
 
-// krim
+// 3. krim
 
 #define SIZE_X 2048
 #define SIZE_Y 2048
@@ -87,7 +110,7 @@ bmp_struct_t bmp;
 
 #elif 1
 
-// center
+// 4. center
 
 #define SIZE_X 2048
 #define SIZE_Y 2048
@@ -98,7 +121,7 @@ bmp_struct_t bmp;
 
 #elif 0
 
-// nn
+// 5. nn
 
 #define SIZE_X 2048
 #define SIZE_Y 2048
@@ -109,7 +132,7 @@ bmp_struct_t bmp;
 
 #elif 0
 
-// maslovo
+// 6. maslovo
 
 #define SIZE_X 2048
 #define SIZE_Y 2048
@@ -120,7 +143,7 @@ bmp_struct_t bmp;
 
 #else
 
-// moscow
+// 7. moscow
 
 #define SIZE_X 2048
 #define SIZE_Y 2048
@@ -133,6 +156,7 @@ bmp_struct_t bmp;
 
 #define ABS(a) ((a)>0?(a):-(a))
 
+#if 0
 void put_point(double lat, double lon) {
 	int x;
 	int y;
@@ -144,6 +168,19 @@ void put_point(double lat, double lon) {
 		//printf("lon = %.5f, lat = %.5f\r\n", lon, lat);
 	}
 }
+#else 
+void put_point(double lat, double lon, int id) {
+	int x;
+	int y;
+	if (ABS(lat-places[id].center_x) < places[id].rad_x && ABS(lon-places[id].center_y) < places[id].rad_y) {
+		x = (int)((lat-CENTER_X)/RAD_X*SIZE_X/2 + SIZE_X/2);
+		y = (int)((CENTER_Y-lon)/RAD_Y*SIZE_Y/2 + SIZE_Y/2);
+		bmp_putpixel(&bmp, x, y+1, 0xFF);
+	} else {
+		//printf("lon = %.5f, lat = %.5f\r\n", lon, lat);
+	}
+}
+#endif
 
 int fgetline(FILE *fp, char *line, int maxsize) {
 	int offset = 0;
@@ -302,7 +339,7 @@ int csv_proc(FILE *fp) {
 					//printf("lon = %f, lat = %f\r\n", lon, lat);
 					
 					// Добавление точки на картинку:
-					put_point(lat, lon);
+					put_point(lat, lon, id);
 					
 					if (speed_max < (int)bcomp.gps_speed) {
 						speed_max = (int)bcomp.gps_speed;
@@ -373,7 +410,7 @@ int csv_proc(FILE *fp) {
 				lon = atof(value);
 				if (ret) {
 					// Добавление точки на картинку:
-					put_point(lat, lon);
+					put_point(lat, lon, id);
 				}
 				// Скорость:
 				ret = csv_getpos(line, size, speed_pos, value);
@@ -464,10 +501,20 @@ void list_txt(char *dir) {
 }
 
 int main(int argc, char **argv) {
+	char filename[128];
+	
+	if (argc > 1) {
+		id = atoi(argv[1]);
+		if (id == 0) {
+			
+		}
+	}
+	
 	bmp_create(&bmp, SIZE_Y, SIZE_X, 8);
 	bmp_setpalette8(&bmp, palette);
 	list_txt("./logs/");
-	bmp_save(&bmp, "out.bmp");
+	sprintf(filename, "out_%s.bmp", places[id].alias);
+	bmp_save(&bmp, filename);
 	bmp_close(&bmp);
 	
 	printf("Speed (max): %dkm/h\r\n", speed_max);
