@@ -66,121 +66,31 @@ typedef struct {
 int id = 4;
 
 place_t places[] = {
-	{ 1, "Sochi",   4096, 4096, 39.487844f, 43.777452f, 0.9f, 0.6f, },
-	{ 2, "M4 Krim", 2048, 8192, 37.619020f, 55.753960f, 5.0f, 20.0f },
-	{ 3, "Krim",    2048, 2048, 34.091941f, 45.240079f, 1.0f, 0.75f },
-	{ 4, "Center",  2048, 2048, 37.619020f, 55.753960f, 4.0f, 3.0f  },
-	{ 5, "NN",      2048, 2048, 43.994927f, 56.328581f, 0.15f, 0.1f },
-	{ 6, "Maslovo", 2048, 2048, 37.701503f, 57.278049f, (0.075f/2), (0.05f/2) },
-	{ 7, "Moscow",  2048, 2048, 37.619020f, 55.753960f, 0.3f, 0.2f },
+	{  1, "Sochi",     4096, 4096, 39.487844f, 43.777452f, 0.9f, 0.6f, },
+	{  2, "M4 Krim",   2048, 8192, 37.619020f, 55.753960f, 5.0f, 20.0f },
+	{  3, "Krim",      2048, 2048, 34.091941f, 45.240079f, 1.0f, 0.75f },
+	{  4, "Center",    2048, 2048, 37.619020f, 55.753960f, 4.0f, 3.0f  },
+	{  5, "NN",        2048, 2048, 43.994927f, 56.328581f, 0.15f, 0.1f },
+	{  6, "Maslovo",   2048, 2048, 37.701503f, 57.278049f, (0.075f/2), (0.05f/2) },
+	{  7, "Moscow",    2048, 2048, 37.619020f, 55.753960f, 0.3f, 0.2f  },
+	{  8, "Nerl",      2048, 2048, 37.991979f, 57.042471f, 0.15f, 0.1f },
+	{  9, "Nerl 2",    2048, 2048, 37.787425f, 57.082049f, 0.3f, 0.2f  },
+	{  0, "0",         0,    0,    0.0f,       0.0f,       0.0f, 0.0f  },
 };
-
-#if 0
-
-// 1. sochi
-
-#define SIZE_X 4096
-#define SIZE_Y 4096
-#define CENTER_X 39.487844f
-#define CENTER_Y 43.777452f
-#define RAD_X 0.9f
-#define RAD_Y 0.6f
-
-#elif 0
-
-// 2. m4-krim
-
-#define SIZE_X 2048
-#define SIZE_Y 8192
-#define CENTER_X 37.619020f
-#define CENTER_Y 55.753960f
-#define RAD_X 5.0f
-#define RAD_Y 20.0f
-
-#elif 0
-
-// 3. krim
-
-#define SIZE_X 2048
-#define SIZE_Y 2048
-#define CENTER_X 34.091941f
-#define CENTER_Y 45.240079f
-#define RAD_X 1.0f
-#define RAD_Y 0.75f
-
-#elif 1
-
-// 4. center
-
-#define SIZE_X 2048
-#define SIZE_Y 2048
-#define CENTER_X 37.619020f
-#define CENTER_Y 55.753960f
-#define RAD_X 4.0f
-#define RAD_Y 3.0f
-
-#elif 0
-
-// 5. nn
-
-#define SIZE_X 2048
-#define SIZE_Y 2048
-#define CENTER_X 43.994927f
-#define CENTER_Y 56.328581f
-#define RAD_X 0.15f
-#define RAD_Y 0.1f
-
-#elif 0
-
-// 6. maslovo
-
-#define SIZE_X 2048
-#define SIZE_Y 2048
-#define CENTER_X 37.701503f
-#define CENTER_Y 57.278049f
-#define RAD_X (0.075f/2)
-#define RAD_Y (0.05f/2)
-
-#else
-
-// 7. moscow
-
-#define SIZE_X 2048
-#define SIZE_Y 2048
-#define CENTER_X 37.619020f
-#define CENTER_Y 55.753960f
-#define RAD_X 0.3f
-#define RAD_Y 0.2f
-
-#endif
 
 #define ABS(a) ((a)>0?(a):-(a))
 
-#if 0
-void put_point(double lat, double lon) {
-	int x;
-	int y;
-	if (ABS(lat-CENTER_X) < RAD_X && ABS(lon-CENTER_Y) < RAD_Y) {
-		x = (int)((lat-CENTER_X)/RAD_X*SIZE_X/2 + SIZE_X/2);
-		y = (int)((CENTER_Y-lon)/RAD_Y*SIZE_Y/2 + SIZE_Y/2);
-		bmp_putpixel(&bmp, x, y+1, 0xFF);
-	} else {
-		//printf("lon = %.5f, lat = %.5f\r\n", lon, lat);
-	}
-}
-#else 
 void put_point(double lat, double lon, int id) {
 	int x;
 	int y;
 	if (ABS(lat-places[id].center_x) < places[id].rad_x && ABS(lon-places[id].center_y) < places[id].rad_y) {
-		x = (int)((lat-CENTER_X)/RAD_X*SIZE_X/2 + SIZE_X/2);
-		y = (int)((CENTER_Y-lon)/RAD_Y*SIZE_Y/2 + SIZE_Y/2);
+		x = (int)((lat-places[id].center_x)/places[id].rad_x*places[id].size_x/2 + places[id].size_x/2);
+		y = (int)((places[id].center_y-lon)/places[id].rad_y*places[id].size_y/2 + places[id].size_y/2);
 		bmp_putpixel(&bmp, x, y+1, 0xFF);
 	} else {
-		//printf("lon = %.5f, lat = %.5f\r\n", lon, lat);
+		//printf("ERROR: lon = %.5f, lat = %.5f\r\n", lon, lat);
 	}
 }
-#endif
 
 int fgetline(FILE *fp, char *line, int maxsize) {
 	int offset = 0;
@@ -501,16 +411,33 @@ void list_txt(char *dir) {
 }
 
 int main(int argc, char **argv) {
+	int i = 0;
 	char filename[128];
-	
 	if (argc > 1) {
 		id = atoi(argv[1]);
 		if (id == 0) {
-			
+			while (strcmpi(places[i].alias, argv[1])) {
+				i++;
+				if (places[i].id == 0) {
+					break;
+				}
+			}
+			id = places[i].id;
 		}
 	}
+	printf("id = %d\r\n", id);
+	i = -1;
+	do {
+		i++;
+		if (places[i].id == 0) {
+			printf("ERROR: unknown region!\r\n");
+			exit(1);
+		}
+	} while (places[i].id != id);
+	id = i;
+	printf("Region: \"%s\"\r\n", places[id].alias);
 	
-	bmp_create(&bmp, SIZE_Y, SIZE_X, 8);
+	bmp_create(&bmp, places[id].size_y, places[id].size_x, 8);
 	bmp_setpalette8(&bmp, palette);
 	list_txt("./logs/");
 	sprintf(filename, "out_%s.bmp", places[id].alias);

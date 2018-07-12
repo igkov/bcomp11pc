@@ -72,6 +72,7 @@ static int nmea_check(char *str) {
 	}
 	if (crcc != crc) {
 		printf("nmea_check(): bad crc!\r\n");
+		//printf("STRING: %s\r\n", str);
 		return 2;
 	}
 	return 0;
