@@ -4,6 +4,7 @@
 *.bak
 *.dep
 *-bak
+*.csv
 win32/*.exe
 logs
 out*.bmp

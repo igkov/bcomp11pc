@@ -75,6 +75,7 @@ place_t places[] = {
 	{  7, "Moscow",    2048, 2048, 37.619020f, 55.753960f, 0.3f, 0.2f  },
 	{  8, "Nerl",      2048, 2048, 37.991979f, 57.042471f, 0.15f, 0.1f },
 	{  9, "Nerl 2",    2048, 2048, 37.787425f, 57.082049f, 0.3f, 0.2f  },
+	{ 10, "Center2",   2048, 2048, 40.619020f, 55.753960f, 4.0f, 3.0f  },
 	{  0, "0",         0,    0,    0.0f,       0.0f,       0.0f, 0.0f  },
 };
 
@@ -91,6 +92,23 @@ void put_point(double lat, double lon, int id) {
 		//printf("ERROR: lon = %.5f, lat = %.5f\r\n", lon, lat);
 	}
 }
+
+FILE *one_log;
+void create_one_log(void) {
+	char str[128];
+	one_log = fopen("out.csv", "wb");
+	sprintf(str, "time;lat;lon\r\n");
+	fwrite(str, 1, strlen(str), one_log);
+}
+void add_one_log(double lat, double lon, int id) {
+	char str[128];
+	sprintf(str, "%d;%f;%f\r\n", id, lat, lon);
+	fwrite(str, 1, strlen(str), one_log);
+}
+void save_one_log(void) {
+	fclose(one_log);
+}
+
 
 int fgetline(FILE *fp, char *line, int maxsize) {
 	int offset = 0;
@@ -250,6 +268,8 @@ int csv_proc(FILE *fp) {
 					
 					// Добавление точки на картинку:
 					put_point(lat, lon, id);
+					//
+					add_one_log(lat, lon, id);
 					
 					if (speed_max < (int)bcomp.gps_speed) {
 						speed_max = (int)bcomp.gps_speed;
@@ -321,6 +341,8 @@ int csv_proc(FILE *fp) {
 				if (ret) {
 					// Добавление точки на картинку:
 					put_point(lat, lon, id);
+					//
+					add_one_log(lat, lon, id);
 				}
 				// Скорость:
 				ret = csv_getpos(line, size, speed_pos, value);
@@ -437,12 +459,16 @@ int main(int argc, char **argv) {
 	id = i;
 	printf("Region: \"%s\"\r\n", places[id].alias);
 	
+	create_one_log();
+	
 	bmp_create(&bmp, places[id].size_y, places[id].size_x, 8);
 	bmp_setpalette8(&bmp, palette);
 	list_txt("./logs/");
 	sprintf(filename, "out_%s.bmp", places[id].alias);
 	bmp_save(&bmp, filename);
 	bmp_close(&bmp);
+	
+	save_one_log();
 	
 	printf("Speed (max): %dkm/h\r\n", speed_max);
 	printf("RPM (max):   %drmp\r\n", rpm_max);
