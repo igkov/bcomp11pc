@@ -177,7 +177,7 @@ function readSingleFile(evt) {
 								parseFloat(results.data[0][csv_pos_lon]) != 0 && 
 								parseFloat(results.data[0][csv_pos_lat]) != 0 &&
 								results.data[0][csv_pos_lon] && results.data[0][csv_pos_lat]) {
-								if (trip.length > 1) {
+								if (trip.length >= 1) {
 									if ((Math.pow(trip[trip.length - 1][0] - results.data[0][csv_pos_lon],2) + 
 										 Math.pow(trip[trip.length - 1][1] - results.data[0][csv_pos_lat],2)) > 0.001) 
 									{

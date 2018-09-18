@@ -446,6 +446,13 @@ int main(int argc, char **argv) {
 			}
 			id = places[i].id;
 		}
+	} else {
+	if (argc > 1) {
+		if (argv[1][0] == '-' &&
+			(argv[1][1] == 'h' || 
+			 argv[1][1] == 'H') {
+			printf("TODO HELP\r\n");
+		}
 	}
 	printf("id = %d\r\n", id);
 	i = -1;
