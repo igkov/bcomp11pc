@@ -7,4 +7,5 @@
 *.csv
 win32/*.exe
 logs
+logs-x
 out*.bmp
