@@ -335,9 +335,17 @@ int csv_proc(FILE *fp) {
 				}
 				// Координаты:
 				ret = csv_getpos(line, size, lat_pos, value);
-				lat = atof(value);
+				if (value[0] == 'N' || value[0] == 'S') {
+					lon = gpstof(value);
+				} else {
+					lat = atof(value);
+				}
 				ret = csv_getpos(line, size, lon_pos, value);
-				lon = atof(value);
+				if (value[0] == 'E' || value[0] == 'W') {
+					lat = gpstof(value);
+				} else {
+					lon = atof(value);
+				}
 				if (ret) {
 					// Добавление точки на картинку:
 					put_point(lat, lon, id);
